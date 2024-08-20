@@ -1,26 +1,37 @@
-const myLibrary = [];
+let myLibrary = [];
+
+function incrementBookId(library) {
+    let id = 0;
+    return function() {
+        return id++;
+    };
+}
+
+let getId = incrementBookId();
 
 
-function Book(title, author, pages, isRead) {
+function Book(title, author, pages, isRead, id) {
     this.title = title;
     this.author = author;
     this.pages = pages;
     this.isRead = isRead;
+    this.id = id;
     this.info = function() {
         return `${this.title} by ${this.author}, ${this.pages} pages, ${this.isRead? "already read" : "not read yet"}` 
     }
 }
 
-function addBookToLibrary(title, author, pages, isRead) {
-    const book = new Book(title, author, pages, isRead);
+function addBookToLibrary(title, author, pages, isRead, id) {
+    const book = new Book(title, author, pages, isRead, id);
     myLibrary.push(book);
 }
 
 
-function createCard(title, author, pages, isRead) {
+function createCard(title, author, pages, isRead, id) {
 
     const newCard = document.createElement("div");
     newCard.classList.add("card", "book");
+    newCard.id = id;
 
     const topCard = document.createElement("div");
     topCard.classList.add("top")
@@ -57,6 +68,12 @@ function createCard(title, author, pages, isRead) {
         label.for = "isread";
         label.textContent = leftText;
 
+        checkbox.addEventListener('change', function(event) {
+            const book = myLibrary.find((book) => book.id === id);
+            book.isRead = event.target.checked;
+        })
+
+
         line.append(checkbox, label);
         return line;
     }
@@ -66,6 +83,10 @@ function createCard(title, author, pages, isRead) {
         line.className = classe;
         line.type = "submit";
         line.textContent = text;
+        line.addEventListener('click', function(event) {
+            myLibrary = deleteFromLibrary(parseInt(id));
+            newCard.remove();
+        })
         return line;
     }
 
@@ -80,14 +101,14 @@ function createCard(title, author, pages, isRead) {
     newCard.append(createButtonLine("button red", "Delete Book"));
 
     const library = document.querySelector(".library");
-    library.append(newCard); 
+    library.append(newCard);
 }
 
 function displayLibrary(library) {
     library.forEach((book) => createCard(book.title, book.author, book.pages, book.isRead));
 };
 
-addBookToLibrary("the hobbit2", "J.R.R", 834, false)
+// addBookToLibrary("the hobbit2", "J.R.R", 834, false)
 
 function clearLibrary(library) {
     const listOfCards = document.querySelectorAll(".book");
@@ -96,15 +117,21 @@ function clearLibrary(library) {
 
 // displayLibrary(myLibrary);
 
-const form = document.querySelector(".book-submit")
+const form = document.querySelector(".book-submit");
 form.addEventListener("submit", function(event) {
     event.preventDefault();
     const title = document.getElementById('title').value;
     const author = document.getElementById('author').value;
     const pages = document.getElementById('pages').value;
     const isRead = document.querySelector('input[name="isread"]').checked === true;
-    addBookToLibrary(title, author, pages, isRead);
-    createCard(title, author, pages, isRead);
+    const id = getId();
+    addBookToLibrary(title, author, pages, isRead, id);
+    createCard(title, author, pages, isRead, id);
     // clearLibrary(myLibrary);
     // displayLibrary(myLibrary);
 })
+
+function deleteFromLibrary(id) {
+    return myLibrary.filter((book) => book.id !== id);
+}
+
